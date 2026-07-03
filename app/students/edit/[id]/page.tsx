@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 
 interface StudentForm {
   Sname: string;
@@ -12,8 +11,10 @@ interface StudentForm {
   address: string;
 }
 
-export default function Student() {
+export default function EditStudent() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id;
 
   const [form, setForm] = useState<StudentForm>({
     Sname: '',
@@ -22,6 +23,31 @@ export default function Student() {
     gender: '',
     address: ''
   });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStudent();
+  }, []);
+
+  const fetchStudent = async () => {
+    try {
+      const res = await fetch(`/api/students/${id}`);
+      const data = await res.json();
+
+      setForm({
+        Sname: data.Sname || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        gender: data.gender || '',
+        address: data.address || ''
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlechange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -34,8 +60,8 @@ export default function Student() {
     e.preventDefault();
 
     try {
-      const res = await fetch('/api/students', {
-        method: 'POST',
+      const res = await fetch(`/api/students/${id}`, {
+        method: 'PUT',
         headers: {
           "Content-Type": "application/json"
         },
@@ -43,34 +69,28 @@ export default function Student() {
       });
 
       if (res.ok) {
-        alert("Student added successfully");
-
-        setForm({
-          Sname: '',
-          email: '',
-          phone: '',
-          gender: '',
-          address: ''
-        });
-
-        router.push('/students/list'); // add hone ke baad list page pe le jao
+        alert("Student updated successfully");
+        router.push('/students/list');
       } else {
-        alert("Failed to add student");
+        alert("Failed to update student");
       }
-
     } catch (error) {
       console.log(error);
       alert("Something went wrong");
     }
   };
 
+  if (loading) {
+    return <p className="text-center mt-10">Loading...</p>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6 space-y-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded-lg p-8 w-full max-w-md space-y-4"
       >
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Add Student</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Edit Student</h2>
 
         <input
           type="text"
@@ -119,18 +139,11 @@ export default function Student() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition-colors"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-md transition-colors"
         >
-          Add Student
+          Update Student
         </button>
       </form>
-
-      <Link
-        href="/students/list"
-        className="text-blue-600 hover:underline font-medium"
-      >
-        View Student List →
-      </Link>
     </div>
   );
 }

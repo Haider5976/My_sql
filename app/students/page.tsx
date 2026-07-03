@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 
 type StudentForm = {
+  Student_id?: number;
   Sname: string;
   email: string;
   phone: string;
   gender: string;
   address: string;
 };
-
 export default function Student() {
   const [form, SetForm] = useState<StudentForm>({
     Sname: '',
