@@ -18,6 +18,65 @@ export async function POST(request) {
   try {
     const { Sname, email, phone, gender, address } = await request.json();
 
+    if(!Sname || Sname.trim() === ""){
+      return NextResponse.json(
+        {message:"Student name is required"},
+        {status:400}
+      );
+    } 
+    if (!email || email.trim() === "") {
+       return NextResponse.json(
+    { message: "Email is required" },
+    { status: 400 }
+  );
+}
+
+ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(email)) {
+  return NextResponse.json(
+    { message: "Invalid email format" },
+    { status: 400 }
+  );
+}
+
+const phoneRegex = /^[0-9]{11}$/;
+
+if (!phoneRegex.test(phone)) {
+  return NextResponse.json(
+    { message: "Phone number must be 11 digits" },
+    { status: 400 }
+  );
+}
+
+// Gender Validation
+if (!gender || gender.trim() === "") {
+  return NextResponse.json(
+    { message: "Gender is required" },
+    { status: 400 }
+  );
+}
+
+// Address Validation
+if (!address || address.trim() === "") {
+  return NextResponse.json(
+    { message: "Address is required" },
+    { status: 400 }
+  );
+}
+
+// Check duplicate email
+const [existingEmail] = await pool.query(
+  "SELECT * FROM students WHERE email = ?",
+  [email]
+);
+
+if (existingEmail.length > 0) {
+  return NextResponse.json(
+    { message: "Email already exists" },
+    { status: 400 }
+  );
+}
     await pool.query(
       `INSERT INTO students (Sname, email, phone, gender, address)
        VALUES (?, ?, ?, ?, ?)`,
